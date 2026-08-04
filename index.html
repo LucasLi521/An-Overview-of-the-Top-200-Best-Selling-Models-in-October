@@ -24,8 +24,8 @@ body {
 }
 
 #sidebar {
-  position: fixed; left:0; top:0;
-  width: 260px; height: 100vh;
+  position: fixed; left:0; top:40px;
+  width: 260px; height: calc(100vh - 40px);
   background: var(--sidebar-bg);
   overflow-y: auto; z-index: 100;
   border-right: 1px solid var(--border);
@@ -71,7 +71,7 @@ body {
 }
 .nav-sub a:hover { color:var(--accent); background:rgba(233,69,96,0.05); padding-left:42px; }
 
-#main { margin-left: 260px; }
+#main { margin-left: 260px; margin-top: 40px; }
 
 .hero {
   height: 340px;
@@ -384,9 +384,65 @@ body {
   .float-btn { width: 40px; height: 40px; font-size: 16px; }
 }
 
+
+/* Top floating disclaimer banner */
+.top-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  background: linear-gradient(90deg, rgba(233,69,96,0.95) 0%, rgba(180,30,60,0.95) 50%, rgba(233,69,96,0.95) 100%);
+  color: #fff;
+  text-align: center;
+  padding: 7px 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+  transform: translateY(0);
+  transition: transform 0.4s ease;
+}
+.top-banner.hidden { transform: translateY(-100%); }
+.top-banner .ban-icon { font-size: 14px; flex-shrink: 0; }
+.top-banner .ban-text { font-weight: 500; }
+.top-banner .ban-sep { opacity: 0.5; margin: 0 2px; }
+.top-banner .ban-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 2px 6px;
+}
+.top-banner .ban-close:hover { opacity: 1; }
+.top-banner-placeholder { display: none; }
+
 </style>
 </head>
 <body>
+
+<!-- Top floating disclaimer banner -->
+<div class="top-banner" id="topBanner">
+  <span class="ban-icon">⚠️</span>
+  <span class="ban-text">仅用于趋势参考分析，请自行甄别侵权违规，合规是底线不可触碰</span>
+  <span class="ban-sep">|</span>
+  <span class="ban-text">所有图片所有权归原图商家所有，不做任何商业用途</span>
+  <button class="ban-close" onclick="dismissBanner()">✕</button>
+</div>
+<div class="top-banner-placeholder" id="bannerPlaceholder"></div>
+
 
 <div id="zoom" onclick="closeZoom()">
   <div id="zoom-close">✕</div>
@@ -1018,7 +1074,6 @@ body {
 
 <div class="footer">
   <p class="warn">⚠️ 图片仅供参考，请注意规避侵权和违规禁忌</p>
-  <p>本页面图片素材来源于PPT文件"26年10月热卖趋势方向终版.pptx"<br>仅用于趋势参考分析，请勿用于商业用途</p>
 </div>
 
 </div>
