@@ -713,24 +713,46 @@ body {
 #deviceCheck .dc-hint b { color: #e94560; }
 
 </style>
+
+<script>
+// === Device Detection - PC Only (Early Block in Head) ===
+(function(){
+  var ua=navigator.userAgent.toLowerCase();
+  var isMobile=false;
+  var keywords=['mobile','android','iphone','ipod','ipad','windows phone','blackberry','opera mini'];
+  for(var i=0;i<keywords.length;i++){
+    if(ua.indexOf(keywords[i])>-1){isMobile=true;break;}
+  }
+  // Check screen width (but only after DOM is ready - for now use UA)
+  // Also check for touch + small screen
+  if(!isMobile){
+    try{
+      if(screen.width<=768){isMobile=true;}
+      if(navigator.maxTouchPoints>1&&screen.width<=1024){isMobile=true;}
+    }catch(e){}
+  }
+  
+  if(isMobile){
+    // Block everything - write overlay immediately and stop
+    document.write('<div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(135deg,#0f3460 0%,#0a0a14 50%,#1a1a2e 100%);z-index:9999999;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:sans-serif;">');
+    document.write('<div style="max-width:420px;width:100%;">');
+    document.write('<div style="font-size:72px;margin-bottom:24px;">🖥️</div>');
+    document.write('<div style="font-size:24px;color:#fff;font-weight:700;margin-bottom:16px;line-height:1.4;">请使用电脑端访问</div>');
+    document.write('<div style="font-size:15px;color:#a0a0c0;line-height:1.8;margin-bottom:28px;">本页面为趋势数据展示页面，<br>包含大量高清图片和详细数据，<br>为获得最佳浏览体验，请使用电脑端打开。</div>');
+    document.write('<div style="font-size:13px;color:#6a6a8a;padding:14px 20px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1);margin-top:20px;">💡 在手机浏览器中复制链接，<br>发送到电脑端打开即可查看完整内容</div>');
+    document.write('</div></div>');
+    // Stop parsing the rest of the page
+    document.write('<style>body{overflow:hidden !important;}body>*:not([style*="position:fixed"]){display:none !important;}</style>');
+    document.close();
+    // Prevent any further script execution
+    window.stop();
+    throw new Error('Mobile device blocked');
+  }
+})();
+</script>
+
 </head>
 <body>
-
-<!-- Device Check Overlay -->
-<div id="deviceCheck">
-  <div class="dc-box">
-    <div class="dc-icon">🖥️</div>
-    <div class="dc-title">请使用电脑端访问</div>
-    <div class="dc-desc">
-      本页面为趋势数据展示页面，<br>
-      包含大量高清图片和详细数据，<br>
-      为获得最佳浏览体验，请使用电脑端打开。
-    </div>
-    <div class="dc-hint">
-      💡 在手机浏览器中复制链接，<br>发送到电脑端打开即可查看完整内容
-    </div>
-  </div>
-</div>
 
 
 <!-- Top floating disclaimer banner -->
@@ -1651,46 +1673,6 @@ body {
 
 <script>
 
-
-// === Device Detection - PC Only ===
-function isMobileDevice(){
-  var ua=navigator.userAgent.toLowerCase();
-  var mobileKeywords=['mobile','android','iphone','ipod','ipad','windows phone','blackberry','opera mini','mobile safari'];
-  for(var i=0;i<mobileKeywords.length;i++){
-    if(ua.indexOf(mobileKeywords[i])>-1)return true;
-  }
-  // Also check screen width and touch capability
-  if(screen.width<=768||window.innerWidth<=768)return true;
-  if(navigator.maxTouchPoints>1&&screen.width<=1024)return true;
-  return false;
-}
-function checkDevice(){
-  if(isMobileDevice()){
-    document.getElementById('deviceCheck').classList.add('show');
-    document.body.style.overflow='hidden';
-    // Hide all other content
-    var all=document.body.children;
-    for(var i=0;i<all.length;i++){
-      if(all[i].id!=='deviceCheck'){
-        all[i].style.display='none';
-      }
-    }
-  }
-}
-// Run immediately and also on DOM ready
-checkDevice();
-document.addEventListener('DOMContentLoaded',checkDevice);
-window.addEventListener('load',checkDevice);
-// Re-check on resize (e.g., rotation)
-var resizeTimer;
-window.addEventListener('resize',function(){
-  clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(function(){
-    if(!isMobileDevice()){
-      location.reload();
-    }
-  },500);
-});
 
 
 function toggleSidebar(){
