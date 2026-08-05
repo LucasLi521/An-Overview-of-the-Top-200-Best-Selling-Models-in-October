@@ -1853,12 +1853,26 @@ function toggleComments(secId){
 
 // Submit comment
 async function submitComment(secId,secName){
-  if(!supa)return;
   const name='匿名用户';
-  const textInput=document.querySelector('#comments-'+secId+' .comment-input');
+  var textInput=document.getElementById('comment-text-'+secId);
+  if(!textInput){
+    textInput=document.querySelector('#comments-'+secId+' input[type="text"]');
+  }
   if(!textInput)return;
   const text=textInput.value.trim();
   if(!text){textInput.focus();return;}
+  if(!supa){
+    // Supabase not ready yet, try to init now
+    try{
+      if(window.supabase){
+        supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+      }
+    }catch(e){}
+  }
+  if(!supa){
+    alert('网络连接中，请稍后重试');
+    return;
+  }
   try{
     await supa.from('comments').insert({section_id:secId,section_name:secName,nickname:name,content:text});
     textInput.value='';
