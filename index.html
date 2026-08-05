@@ -689,50 +689,10 @@ body {
   margin: 0 auto 14px; animation: pop 0.4s ease;
 }
 @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-
-/* === Device Check Overlay === */
-#deviceCheck {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: linear-gradient(135deg, #0f3460 0%, #0a0a14 50%, #1a1a2e 100%);
-  z-index: 99999;
-  display: none;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 30px;
-}
-#deviceCheck.show { display: flex; }
-#deviceCheck .dc-box {
-  max-width: 420px; width: 100%;
-}
-#deviceCheck .dc-icon {
-  font-size: 72px; margin-bottom: 24px;
-  animation: dcBounce 2s ease-in-out infinite;
-}
-@keyframes dcBounce {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-#deviceCheck .dc-title {
-  font-size: 24px; color: #fff; font-weight: 700;
-  margin-bottom: 16px; line-height: 1.4;
-}
-#deviceCheck .dc-desc {
-  font-size: 15px; color: #a0a0c0; line-height: 1.8;
-  margin-bottom: 28px;
-}
-#deviceCheck .dc-hint {
-  font-size: 13px; color: #6a6a8a;
-  padding: 14px 20px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  margin-top: 20px;
-}
-#deviceCheck .dc-hint b { color: #e94560; }
-
 </style>
 
 <script>
-// === Device Detection - PC Only (Early Block in Head) ===
+// === Device Detection - PC Only ===
 (function(){
   var ua=navigator.userAgent.toLowerCase();
   var isMobile=false;
@@ -740,17 +700,13 @@ body {
   for(var i=0;i<keywords.length;i++){
     if(ua.indexOf(keywords[i])>-1){isMobile=true;break;}
   }
-  // Check screen width (but only after DOM is ready - for now use UA)
-  // Also check for touch + small screen
   if(!isMobile){
     try{
       if(screen.width<=768){isMobile=true;}
       if(navigator.maxTouchPoints>1&&screen.width<=1024){isMobile=true;}
     }catch(e){}
   }
-  
   if(isMobile){
-    // Block everything - write overlay immediately and stop
     document.write('<div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(135deg,#0f3460 0%,#0a0a14 50%,#1a1a2e 100%);z-index:9999999;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;font-family:sans-serif;">');
     document.write('<div style="max-width:420px;width:100%;">');
     document.write('<div style="font-size:72px;margin-bottom:24px;">🖥️</div>');
@@ -758,10 +714,7 @@ body {
     document.write('<div style="font-size:15px;color:#a0a0c0;line-height:1.8;margin-bottom:28px;">本页面为趋势数据展示页面，<br>包含大量高清图片和详细数据，<br>为获得最佳浏览体验，请使用电脑端打开。</div>');
     document.write('<div style="font-size:13px;color:#6a6a8a;padding:14px 20px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1);margin-top:20px;">💡 在手机浏览器中复制链接，<br>发送到电脑端打开即可查看完整内容</div>');
     document.write('</div></div>');
-    // Stop parsing the rest of the page
-    document.write('<style>body{overflow:hidden !important;}body>*:not([style*="position:fixed"]){display:none !important;}</style>');
     document.close();
-    // Prevent any further script execution
     window.stop();
     throw new Error('Mobile device blocked');
   }
@@ -770,7 +723,6 @@ body {
 
 </head>
 <body>
-
 
 <!-- Top floating disclaimer banner -->
 <div class="top-banner" id="topBanner">
@@ -1690,8 +1642,6 @@ body {
 
 <script>
 
-
-
 function toggleSidebar(){
   var sb=document.getElementById('sidebar');
   var btn=document.getElementById('mobileMenuBtn');
@@ -1859,14 +1809,11 @@ async function loadLikes(secId){
 
 // Toggle comments
 function toggleComments(secId){
-  const sec=document.getElementById('comments-'+secId);
+  var sec=document.getElementById('comments-'+secId);
   if(sec.classList.contains('open')){
     sec.classList.remove('open');
   }else{
-    // Close all other open comment panels
-    document.querySelectorAll('.comment-section.open').forEach(function(s){
-      s.classList.remove('open');
-    });
+    document.querySelectorAll('.comment-section.open').forEach(function(s){s.classList.remove('open');});
     sec.classList.add('open');
     loadComments(secId);
   }
@@ -1874,26 +1821,12 @@ function toggleComments(secId){
 
 // Submit comment
 async function submitComment(secId,secName){
+  if(!supa)return;
   const name='匿名用户';
-  var textInput=document.getElementById('comment-text-'+secId);
-  if(!textInput){
-    textInput=document.querySelector('#comments-'+secId+' input[type="text"]');
-  }
+  const textInput=document.getElementById('comment-text-'+secId);
   if(!textInput)return;
   const text=textInput.value.trim();
   if(!text){textInput.focus();return;}
-  if(!supa){
-    // Supabase not ready yet, try to init now
-    try{
-      if(window.supabase){
-        supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
-      }
-    }catch(e){}
-  }
-  if(!supa){
-    alert('网络连接中，请稍后重试');
-    return;
-  }
   try{
     await supa.from('comments').insert({section_id:secId,section_name:secName,nickname:name,content:text});
     textInput.value='';
@@ -1904,13 +1837,11 @@ async function submitComment(secId,secName){
 }
 
 // Load comments
-async var commentDataCache={};
+var commentDataCache={};
 async function loadComments(secId){
   if(!supa)return;
   try{
     const {data}=await supa.from('comments').select('*').eq('section_id',secId).order('created_at',{ascending:false}).limit(50);
-    const list=document.getElementById('comment-list-'+secId);
-    if(!list)return;
     commentDataCache[secId]=data||[];
     renderComments(secId,data||[],false);
   }catch(e){}
@@ -1923,17 +1854,16 @@ function renderComments(secId,data,showAll){
     return;
   }
   var display=data;
-  var showMoreBtn='';
+  var moreBtn='';
   if(!showAll&&data.length>3){
     display=data.slice(0,3);
-    var remaining=data.length-3;
-    showMoreBtn='<div class="comment-more" onclick="showAllComments(\''+secId+'\')">查看更多 '+data.length+' 条评论 ▾</div>';
+    moreBtn='<div class="comment-more" onclick="showAllComments(\''+secId+'\')">查看更多 '+data.length+' 条评论 ▾</div>';
   }
   list.innerHTML=display.map(function(c){
     var d=new Date(c.created_at);
-    var timeStr=(d.getMonth()+1)+'\u6708'+d.getDate()+'\u65e5 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-    return '<div class="comment-item"><div class="c-name">'+escapeHtml(c.nickname)+'</div><div class="c-text">'+escapeHtml(c.content)+'</div><div class="c-time">'+timeStr+'</div></div>';
-  }).join('')+showMoreBtn;
+    var t=(d.getMonth()+1)+'月'+d.getDate()+'日 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    return '<div class="comment-item"><div class="c-name">'+escapeHtml(c.nickname)+'</div><div class="c-text">'+escapeHtml(c.content)+'</div><div class="c-time">'+t+'</div></div>';
+  }).join('')+moreBtn;
 }
 function showAllComments(secId){
   renderComments(secId,commentDataCache[secId]||[],true);
